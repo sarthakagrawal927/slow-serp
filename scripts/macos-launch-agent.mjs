@@ -43,6 +43,9 @@ function plist() {
     <key>SCRAPER_HEADLESS</key><string>true</string>
     <key>SCRAPER_BLOCK_RESOURCES</key><string>true</string>
     <key>SCRAPER_BROWSER_CONCURRENCY</key><string>3</string>
+    <key>SCRAPER_HTTP_CONCURRENCY</key><string>12</string>
+    <key>SCRAPER_HTTP_RETRIES</key><string>2</string>
+    <key>SCRAPER_HTTP_CONCURRENCY</key><string>12</string>
     <key>SCRAPER_TARGETS_FILE</key><string>${xml(values.targetsPath)}</string>
     <key>SCRAPER_PROFILE_DIR</key><string>${xml(values.profilePath)}</string>
   </dict>

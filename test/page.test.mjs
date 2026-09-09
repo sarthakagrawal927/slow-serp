@@ -7,6 +7,7 @@ test("validatePageTarget normalizes a generic page target", () => {
     name: "Example",
     url: "https://example.com/",
     extractor: "page",
+    transport: "auto",
   });
 });
 
@@ -23,6 +24,7 @@ test("validatePageTarget prepares a jobs target", () => {
     url: "https://example.com/jobs",
     careersUrl: "https://example.com/jobs",
     extractor: "jobs",
+    transport: "auto",
     jobUrlIncludes: ["example.com/jobs/"],
   });
 });
@@ -30,4 +32,19 @@ test("validatePageTarget prepares a jobs target", () => {
 test("validatePageTarget rejects unsafe schemes and incomplete job targets", () => {
   assert.throws(() => validatePageTarget({ name: "File", url: "file:///etc/passwd" }), /HTTP or HTTPS/);
   assert.throws(() => validatePageTarget({ name: "Jobs", url: "https://example.com", extractor: "jobs" }), /jobUrlIncludes/);
+});
+
+test("validatePageTarget keeps JSON and text extraction on HTTP transport", () => {
+  assert.deepEqual(validatePageTarget({ name: "API", url: "https://example.com/api", extractor: "json" }), {
+    name: "API",
+    url: "https://example.com/api",
+    extractor: "json",
+    transport: "http",
+  });
+  assert.throws(() => validatePageTarget({
+    name: "API",
+    url: "https://example.com/api",
+    extractor: "json",
+    transport: "browser",
+  }), /must use HTTP transport/);
 });

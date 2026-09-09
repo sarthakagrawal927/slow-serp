@@ -1,6 +1,6 @@
 # slow-serp
 
-A small, self-hosted scraping service and scheduled crawler. It drives the machine's installed **Google Chrome**, keeps an optional persistent browser profile, and supports headful or unattended headless operation.
+A small, self-hosted scraping service and scheduled crawler. It uses bounded HTTP fetching first, then automatically falls back to the machine's installed **Google Chrome** only when rendering is required.
 
 It has three entry points:
 
@@ -13,10 +13,12 @@ This is intentionally not a CAPTCHA solver or an aggressive crawler. If Google r
 ## Design
 
 - Real installed Chrome, not Playwright's bundled Chromium.
+- Fast HTTP-first extraction with bounded response sizes and streaming reads.
+- ETag, Last-Modified, and content-hash reuse between scheduled runs.
 - Configurable headful/headless persistent context.
 - One paced queue per Google-search instance.
 - Bounded browser concurrency with one active page per hostname.
-- Optional blocking of images, fonts, and media for lower background resource use.
+- Optional blocking of images, fonts, media, stylesheets, and service workers for lower background resource use.
 - Proxy credentials supplied only at runtime.
 - API-key authentication when the HTTP service is exposed beyond localhost.
 - No automatic CAPTCHA interaction.
@@ -56,6 +58,10 @@ The general crawler reads `targets/default.json`. A target can capture an ordina
 }
 ```
 
+Targets default to `"transport": "auto"`. Set it to `"http"` to forbid browser fallback or `"browser"` when a site always requires JavaScript or a persistent session.
+
+Public APIs and feeds can use `"extractor": "json"` or `"extractor": "text"`; these use HTTP transport exclusively.
+
 Or it can invoke the jobs adapter with URL allow-patterns:
 
 ```json
@@ -68,7 +74,7 @@ Or it can invoke the jobs adapter with URL allow-patterns:
 }
 ```
 
-Each crawl writes `data/crawls/latest.json` plus a timestamped run. A failed target is recorded without discarding successful targets. Override the registry or output directory with `SCRAPER_TARGETS_FILE` and `SCRAPER_OUTPUT_DIR`.
+Each crawl writes `data/crawls/latest.json` plus a gzip-compressed timestamped run. A failed target is recorded without discarding successful targets. Override the registry or output directory with `SCRAPER_TARGETS_FILE` and `SCRAPER_OUTPUT_DIR`.
 
 ## Background operation on macOS
 
@@ -121,8 +127,15 @@ curl -sS http://127.0.0.1:8787/v1/search \
 | `SCRAPER_API_KEY` | unset | Bearer token; required when exposed |
 | `SCRAPER_PROFILE_DIR` | `work/chrome-profile` | Persistent Chrome profile directory |
 | `SCRAPER_HEADLESS` | `false` | Run Chrome without visible windows |
-| `SCRAPER_BLOCK_RESOURCES` | `false` | Skip images, fonts, and media |
-| `SCRAPER_BROWSER_CONCURRENCY` | `3` | Concurrent targets, capped at 8 |
+| `SCRAPER_BLOCK_RESOURCES` | `false` | Skip nonessential browser resources |
+| `SCRAPER_BROWSER_CONCURRENCY` | `3` | Concurrent browser fallbacks, capped at 8 |
+| `SCRAPER_HTTP_CONCURRENCY` | `12` | Concurrent HTTP targets, capped at 64 |
+| `SCRAPER_HTTP_TIMEOUT_MS` | `15000` | HTTP-first timeout before fallback |
+| `SCRAPER_HTTP_RETRIES` | `2` | Transient HTTP/network retries |
+| `SCRAPER_HTTP_RETRY_BASE_MS` | `500` | Exponential backoff base delay |
+| `SCRAPER_MAX_RESPONSE_BYTES` | `5000000` | Maximum buffered HTML response size |
+| `SCRAPER_HTTP_CACHE_FILE` | `work/http-cache.json` | Conditional-request and content cache |
+| `SCRAPER_USER_AGENT` | `slow-serp/0.2 (...)` | HTTP transport user agent |
 | `SCRAPER_TARGETS_FILE` | `targets/default.json` | General crawler registry |
 | `SCRAPER_OUTPUT_DIR` | `data/crawls` | General crawler output directory |
 | `SCRAPER_PROXY_SERVER` | unset | Proxy endpoint, such as `http://host:port` |

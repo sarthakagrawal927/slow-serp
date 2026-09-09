@@ -18,11 +18,19 @@ export function validatePageTarget(input) {
   if (!/^https?:$/.test(url.protocol)) throw new TypeError(`Target ${name} must use HTTP or HTTPS`);
 
   const extractor = input.extractor || "page";
-  if (!["page", "jobs"].includes(extractor)) {
+  if (!["page", "jobs", "json", "text"].includes(extractor)) {
     throw new TypeError(`Target ${name} has unsupported extractor: ${extractor}`);
   }
 
-  const target = { name, url: url.href, extractor };
+  const transport = input.transport || (["json", "text"].includes(extractor) ? "http" : "auto");
+  if (!["auto", "http", "browser"].includes(transport)) {
+    throw new TypeError(`Target ${name} has unsupported transport: ${transport}`);
+  }
+  if (["json", "text"].includes(extractor) && transport !== "http") {
+    throw new TypeError(`Target ${name} must use HTTP transport for the ${extractor} extractor`);
+  }
+
+  const target = { name, url: url.href, extractor, transport };
   if (extractor === "jobs") {
     if (!Array.isArray(input.jobUrlIncludes) || input.jobUrlIncludes.length === 0) {
       throw new TypeError(`Job target ${name} needs at least one jobUrlIncludes pattern`);

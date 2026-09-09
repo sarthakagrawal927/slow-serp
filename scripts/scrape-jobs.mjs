@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { mapConcurrentByKey } from "../src/concurrency.mjs";
 import { loadConfig } from "../src/config.mjs";
 import { validatePageTarget } from "../src/page.mjs";
-import { Scraper } from "../src/scraper.mjs";
+import { TargetRunner } from "../src/runner.mjs";
 
 const config = loadConfig();
 const targetsPath = resolve(process.env.SCRAPER_TARGETS_FILE || "targets/default.json");
@@ -16,7 +16,7 @@ const date = new Intl.DateTimeFormat("en-CA", {
   month: "2-digit",
   day: "2-digit",
 }).format(new Date());
-const scraper = new Scraper({ ...config, minDelayMs: 1_000, jitterMs: 0 });
+const runner = await new TargetRunner({ ...config, minDelayMs: 1_000, jitterMs: 0 }).start();
 
 function csvCell(value) {
   const cell = String(value ?? "");
@@ -26,11 +26,11 @@ function csvCell(value) {
 try {
   const sources = await mapConcurrentByKey(
     targets,
-    config.browserConcurrency,
+    config.httpConcurrency,
     (target) => new URL(target.url).hostname,
     async (target) => {
-      const result = await scraper.scrapeJobs(target);
-      console.log(`${result.company}: ${result.jobCount} jobs (HTTP ${result.status})`);
+      const result = await runner.run(target);
+      console.log(`${result.company}: ${result.jobCount} jobs via ${result.transport} (HTTP ${result.status})`);
       return result;
     },
   );
@@ -59,5 +59,5 @@ try {
   console.log(`Saved ${jobs.length} jobs to ${jsonPath} and ${csvPath}`);
   if (jobs.length === 0) process.exitCode = 2;
 } finally {
-  await scraper.close();
+  await runner.close();
 }

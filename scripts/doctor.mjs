@@ -18,6 +18,8 @@ try {
   await access(config.chromeExecutable, constants.X_OK);
   record("Google Chrome", true, config.chromeExecutable);
   record("Chrome mode", true, config.headless ? "headless" : "headful");
+  record("Worker limits", true, `${config.httpConcurrency} HTTP / ${config.browserConcurrency} browser`);
+  record("HTTP safeguards", true, `${config.httpTimeoutMs}ms timeout, ${config.httpRetries} retries, ${config.maxResponseBytes} byte cap`);
 } catch (error) {
   record("Google Chrome", false, error.message);
 }

@@ -43,14 +43,26 @@ export class Scraper {
       locale: this.config.locale,
       timezoneId: this.config.timezoneId,
       proxy: this.config.proxy,
-      viewport: { width: 1365, height: 900 },
+      viewport: { width: 1280, height: 720 },
+      serviceWorkers: this.config.blockResources ? "block" : "allow",
       ignoreDefaultArgs: ["--enable-automation"],
-      args: ["--disable-blink-features=AutomationControlled", "--no-first-run"],
+      args: [
+        "--disable-background-networking",
+        "--disable-blink-features=AutomationControlled",
+        "--disable-component-update",
+        "--disable-default-apps",
+        "--disable-extensions",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--mute-audio",
+        "--no-default-browser-check",
+        "--no-first-run",
+      ],
     });
     if (this.config.blockResources) {
       await context.route("**/*", (route) => {
         const type = route.request().resourceType();
-        return ["font", "image", "media"].includes(type) ? route.abort() : route.continue();
+        return ["font", "image", "media", "stylesheet"].includes(type) ? route.abort() : route.continue();
       });
     }
     return context;

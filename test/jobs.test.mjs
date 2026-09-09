@@ -13,6 +13,8 @@ test("extractJobRecords keeps matching jobs, derives titles, and removes duplica
     {
       href: "/careers/backend-engineer",
       text: "Learn more",
+      roleText: "Backend Engineer",
+      primaryText: "Backend Engineer",
       context: "Backend Engineer\nRemote\nLearn more",
     },
     {

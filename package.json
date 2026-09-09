@@ -1,8 +1,8 @@
 {
   "name": "slow-serp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "A persistent-Chrome search and public careers-page scraper for a single VPS.",
+  "description": "An HTTP-first crawler with automatic persistent-Chrome fallback.",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -21,6 +21,7 @@
     "test": "node --test"
   },
   "dependencies": {
+    "cheerio": "^1.2.0",
     "playwright-core": "^1.55.0"
   }
 }

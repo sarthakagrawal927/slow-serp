@@ -68,6 +68,26 @@ export function loadConfig() {
       min: 1,
       max: 8,
     }),
+    httpConcurrency: integer("SCRAPER_HTTP_CONCURRENCY", 12, {
+      min: 1,
+      max: 64,
+    }),
+    httpTimeoutMs: integer("SCRAPER_HTTP_TIMEOUT_MS", 15_000, {
+      min: 1_000,
+      max: 300_000,
+    }),
+    httpRetries: integer("SCRAPER_HTTP_RETRIES", 2, { min: 0, max: 5 }),
+    httpRetryBaseMs: integer("SCRAPER_HTTP_RETRY_BASE_MS", 500, {
+      min: 50,
+      max: 30_000,
+    }),
+    maxResponseBytes: integer("SCRAPER_MAX_RESPONSE_BYTES", 5_000_000, {
+      min: 100_000,
+      max: 100_000_000,
+    }),
+    httpCacheFile: resolve(process.env.SCRAPER_HTTP_CACHE_FILE || "work/http-cache.json"),
+    userAgent: process.env.SCRAPER_USER_AGENT?.trim()
+      || "slow-serp/0.2 (+https://github.com/sarthakagrawal927/slow-serp)",
     minDelayMs: integer("SCRAPER_MIN_DELAY_MS", 30_000, {
       min: 1_000,
       max: 3_600_000,

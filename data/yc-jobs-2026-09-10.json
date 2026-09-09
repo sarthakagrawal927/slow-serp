@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-09T21:39:36.003Z",
+  "generatedAt": "2026-09-09T22:40:34.556Z",
   "sourceCount": 3,
   "jobCount": 171,
   "sources": [
@@ -8,24 +8,24 @@
       "careersUrl": "https://linear.app/careers",
       "status": 200,
       "jobCount": 23,
-      "fetchedAt": "2026-09-09T21:39:32.543Z",
-      "elapsedMs": 3277
+      "fetchedAt": "2026-09-09T22:40:34.550Z",
+      "elapsedMs": 3470
     },
     {
       "company": "Supabase",
       "careersUrl": "https://supabase.com/careers",
       "status": 200,
       "jobCount": 61,
-      "fetchedAt": "2026-09-09T21:39:34.202Z",
-      "elapsedMs": 1627
+      "fetchedAt": "2026-09-09T22:40:33.164Z",
+      "elapsedMs": 2077
     },
     {
       "company": "Vercel",
       "careersUrl": "https://vercel.com/careers",
       "status": 200,
       "jobCount": 87,
-      "fetchedAt": "2026-09-09T21:39:35.990Z",
-      "elapsedMs": 1757
+      "fetchedAt": "2026-09-09T22:40:33.028Z",
+      "elapsedMs": 1924
     }
   ],
   "jobs": [

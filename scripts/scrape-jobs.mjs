@@ -1,33 +1,22 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { mapConcurrentByKey } from "../src/concurrency.mjs";
 import { loadConfig } from "../src/config.mjs";
+import { validatePageTarget } from "../src/page.mjs";
 import { Scraper } from "../src/scraper.mjs";
 
-const TARGETS = [
-  {
-    company: "Linear",
-    careersUrl: "https://linear.app/careers",
-    jobUrlIncludes: ["linear.app/careers/"],
-  },
-  {
-    company: "Supabase",
-    careersUrl: "https://supabase.com/careers",
-    jobUrlIncludes: ["jobs.ashbyhq.com/supabase/"],
-  },
-  {
-    company: "Vercel",
-    careersUrl: "https://vercel.com/careers",
-    jobUrlIncludes: ["vercel.com/careers/"],
-  },
-];
-
+const config = loadConfig();
+const targetsPath = resolve(process.env.SCRAPER_TARGETS_FILE || "targets/default.json");
+const targets = JSON.parse(await readFile(targetsPath, "utf8"))
+  .map(validatePageTarget)
+  .filter((target) => target.extractor === "jobs");
 const outputDir = resolve("data");
 const date = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
 }).format(new Date());
-const scraper = new Scraper({ ...loadConfig(), minDelayMs: 1_000, jitterMs: 0 });
+const scraper = new Scraper({ ...config, minDelayMs: 1_000, jitterMs: 0 });
 
 function csvCell(value) {
   const cell = String(value ?? "");
@@ -35,12 +24,16 @@ function csvCell(value) {
 }
 
 try {
-  const sources = [];
-  for (const target of TARGETS) {
-    const result = await scraper.scrapeJobs(target);
-    sources.push(result);
-    console.log(`${result.company}: ${result.jobCount} jobs (HTTP ${result.status})`);
-  }
+  const sources = await mapConcurrentByKey(
+    targets,
+    config.browserConcurrency,
+    (target) => new URL(target.url).hostname,
+    async (target) => {
+      const result = await scraper.scrapeJobs(target);
+      console.log(`${result.company}: ${result.jobCount} jobs (HTTP ${result.status})`);
+      return result;
+    },
+  );
 
   const jobs = sources.flatMap((source) => source.jobs);
   const report = {

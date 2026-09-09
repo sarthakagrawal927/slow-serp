@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Y Combinator homepage",
+    "url": "https://www.ycombinator.com/",
+    "extractor": "page"
+  },
+  {
+    "name": "Linear careers",
+    "company": "Linear",
+    "url": "https://linear.app/careers",
+    "extractor": "jobs",
+    "jobUrlIncludes": ["linear.app/careers/"]
+  },
+  {
+    "name": "Supabase careers",
+    "company": "Supabase",
+    "url": "https://supabase.com/careers",
+    "extractor": "jobs",
+    "jobUrlIncludes": ["jobs.ashbyhq.com/supabase/"]
+  },
+  {
+    "name": "Vercel careers",
+    "company": "Vercel",
+    "url": "https://vercel.com/careers",
+    "extractor": "jobs",
+    "jobUrlIncludes": ["vercel.com/careers/"]
+  }
+]

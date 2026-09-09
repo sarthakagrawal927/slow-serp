@@ -1,5 +1,7 @@
 node_modules/
 work/
 outputs/
+logs/
+data/crawls/
 *.log
 .DS_Store

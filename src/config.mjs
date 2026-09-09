@@ -18,6 +18,14 @@ function integer(name, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}
   return value;
 }
 
+function boolean(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return fallback;
+  if (["1", "true", "yes", "on"].includes(raw.toLowerCase())) return true;
+  if (["0", "false", "no", "off"].includes(raw.toLowerCase())) return false;
+  throw new Error(`${name} must be a boolean (true/false, 1/0, yes/no, or on/off)`);
+}
+
 function findChrome() {
   if (process.env.CHROME_EXECUTABLE) return resolve(process.env.CHROME_EXECUTABLE);
   return DEFAULT_CHROME_PATHS.find(existsSync) ?? null;
@@ -54,6 +62,12 @@ export function loadConfig() {
     locale: process.env.SCRAPER_LOCALE?.trim() || "en-US",
     timezoneId: process.env.SCRAPER_TIMEZONE?.trim() || "UTC",
     proxy: proxyConfig(),
+    headless: boolean("SCRAPER_HEADLESS", false),
+    blockResources: boolean("SCRAPER_BLOCK_RESOURCES", false),
+    browserConcurrency: integer("SCRAPER_BROWSER_CONCURRENCY", 3, {
+      min: 1,
+      max: 8,
+    }),
     minDelayMs: integer("SCRAPER_MIN_DELAY_MS", 30_000, {
       min: 1_000,
       max: 3_600_000,
@@ -70,4 +84,4 @@ export function loadConfig() {
   };
 }
 
-export { findChrome };
+export { boolean, findChrome };

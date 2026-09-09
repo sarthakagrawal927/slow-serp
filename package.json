@@ -10,7 +10,13 @@
   "scripts": {
     "start": "node src/index.mjs",
     "dev": "node --watch src/index.mjs",
+    "crawl": "node scripts/crawl.mjs",
+    "doctor": "node scripts/doctor.mjs",
     "jobs": "node scripts/scrape-jobs.mjs",
+    "macos:install": "node scripts/macos-launch-agent.mjs install",
+    "macos:status": "node scripts/macos-launch-agent.mjs status",
+    "macos:validate": "node scripts/macos-launch-agent.mjs validate",
+    "macos:uninstall": "node scripts/macos-launch-agent.mjs uninstall",
     "smoke": "node scripts/smoke.mjs",
     "test": "node --test"
   },

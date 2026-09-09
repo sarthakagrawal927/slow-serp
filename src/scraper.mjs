@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 import { PacedQueue } from "./paced-queue.mjs";
 import { buildSearchUrl, detectBlock, extractOrganicResults } from "./google.mjs";
 import { extractJobsFromPage } from "./jobs.mjs";
+import { extractPageData } from "./page.mjs";
 
 export class BlockedError extends Error {
   constructor(reason, url) {
@@ -36,9 +37,9 @@ export class Scraper {
 
   async #launch() {
     await mkdir(this.config.profileDir, { recursive: true });
-    return chromium.launchPersistentContext(this.config.profileDir, {
+    const context = await chromium.launchPersistentContext(this.config.profileDir, {
       executablePath: this.config.chromeExecutable,
-      headless: false,
+      headless: this.config.headless,
       locale: this.config.locale,
       timezoneId: this.config.timezoneId,
       proxy: this.config.proxy,
@@ -46,6 +47,13 @@ export class Scraper {
       ignoreDefaultArgs: ["--enable-automation"],
       args: ["--disable-blink-features=AutomationControlled", "--no-first-run"],
     });
+    if (this.config.blockResources) {
+      await context.route("**/*", (route) => {
+        const type = route.request().resourceType();
+        return ["font", "image", "media"].includes(type) ? route.abort() : route.continue();
+      });
+    }
+    return context;
   }
 
   async search(request) {
@@ -112,6 +120,31 @@ export class Scraper {
     }
   }
 
+  async scrapePage(target) {
+    const context = await this.start();
+    const page = await context.newPage();
+    const startedAt = Date.now();
+
+    try {
+      const response = await page.goto(target.url, {
+        waitUntil: "domcontentloaded",
+        timeout: this.config.navigationTimeoutMs,
+      });
+      await page.waitForTimeout(1_000);
+      return {
+        name: target.name,
+        sourceUrl: target.url,
+        finalUrl: page.url(),
+        status: response?.status() ?? 0,
+        fetchedAt: new Date().toISOString(),
+        elapsedMs: Date.now() - startedAt,
+        data: await extractPageData(page, target),
+      };
+    } finally {
+      await page.close().catch(() => undefined);
+    }
+  }
+
   async close() {
     await this.#context?.close();
     this.#context = undefined;
@@ -125,6 +158,8 @@ export class Scraper {
         ? new Date(this.queue.lastStartedAt).toISOString()
         : null,
       proxyConfigured: Boolean(this.config.proxy),
+      headless: this.config.headless,
+      blockResources: this.config.blockResources,
       minDelayMs: this.config.minDelayMs,
     };
   }
